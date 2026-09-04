@@ -95,6 +95,15 @@ Options:
 - `k3d-sigscale-server-0`: Ready, v1.31.5+k3s1
 - Memory at idle cluster (30 s after create): server container **412.7 MiB** (budget < 1.5 GiB ✓), serverlb 7.3 MiB
 
+## Stack versions (Task 3, 2026-09-05)
+
+| Chart | Version | App | Note |
+|---|---|---|---|
+| kube-prometheus-stack (`mon`, ns `monitoring`) | 89.2.2 | v0.93.1 | slim values; scrape 15 s; NodePort 30090 |
+| keda (`keda`) | 2.20.2 | 2.20.2 | **warns: tested on k8s 1.33+, cluster is 1.31** — operator reconciles (1 restart at startup, then stable, all deploys Available). If ScaledObject reconciliation misbehaves in Task 11, pin chart to a 1.31-supported KEDA (≤2.18) and record. |
+
+Verified 2026-09-05: `/-/healthy` OK; `container_cpu_usage_seconds_total` (cAdvisor) and `node_cpu_seconds_total` (node-exporter) both return non-empty results via `localhost:30090`.
+
 **Findings from the help (consumed by Task 8):**
 1. A seed option **exists**: `--seed kind=static,...` → `run_schedule` adds `--seed kind=static,seed=<schedule seed>` for reproducibility (spec §7.2).
 2. Output `kind=json,path=...` syntax confirmed.
