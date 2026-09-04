@@ -1,0 +1,48 @@
+# experiments/arms/queries.yaml — the ONLY place arm PromQL lives.
+# Aggregate semantics: every query returns a cluster-wide value; thresholds
+# are per-replica targets; KEDA/HPA scaling law is therefore identical
+# across arms (desired ~= ceil(current * value / threshold)).
+#
+# Control-loop roles (spec §6.2) — drives the §6.6 hypothesis structure:
+#   rps   = demand            cpu, kv = resource-pressure
+#   queue = backlog           ttft    = outcome/feedback (closed loop, §6.6)
+# composite = reference condition, excluded from single-signal ranking.
+arms:
+  cpu:
+    # total cores used by sim containers; threshold = target cores per replica
+    query: 'sum(rate(container_cpu_usage_seconds_total{namespace="serving",container="sim"}[2m]))'
+    threshold_key: cpu_cores_per_replica
+    activation_key: cpu_activation
+  rps:
+    # request throughput; threshold = calibrated per-replica capacity (req/s)
+    query: 'sum(rate(vllm:request_success_total{namespace="serving"}[2m]))'
+    threshold_key: rps_per_replica
+    activation_key: rps_activation
+  queue:
+    # total waiting requests across pods; threshold = backlog per replica
+    query: 'sum(vllm:num_requests_waiting{namespace="serving"})'
+    threshold_key: queue_per_replica
+    activation_key: queue_activation
+  kv:
+    # mean KV-cache occupancy fraction across pods (0..1)
+    query: 'avg(vllm:kv_cache_usage_perc{namespace="serving"})'
+    threshold_key: kv_frac
+    activation_key: kv_activation
+  ttft:
+    # rolling p95 TTFT in seconds
+    query: 'histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{namespace="serving"}[2m])))'
+    threshold_key: ttft_p95_s
+    activation_key: ttft_activation
+  composite:
+    # Reference condition (spec §6.2): WVA-style threshold-OR. Verified
+    # 2026-09-04: WVA publishes NO combination weights — it ORs per-signal
+    # thresholds (paper §V-A: tau_kv=0.8, tau_q=5; same values are the repo
+    # defaults). KEDA multi-trigger max-over-triggers reproduces OR: scale
+    # to whichever signal demands more.
+    triggers:
+      - query: 'avg(vllm:kv_cache_usage_perc{namespace="serving"})'
+        threshold_key: composite_kv_frac      # WVA tau_kv = 0.8
+        activation_key: kv_activation
+      - query: 'sum(vllm:num_requests_waiting{namespace="serving"})'
+        threshold_key: composite_queue        # WVA tau_q = 5
+        activation_key: queue_activation
