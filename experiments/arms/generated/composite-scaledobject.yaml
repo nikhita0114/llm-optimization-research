@@ -1,0 +1,32 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: sim-composite
+  namespace: serving
+spec:
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+        scaleUp:
+          stabilizationWindowSeconds: 0
+  cooldownPeriod: 300
+  maxReplicaCount: 6
+  minReplicaCount: 1
+  pollingInterval: 30
+  scaleTargetRef:
+    name: llm-sim
+  triggers:
+  - metadata:
+      activationThreshold: '0.1'
+      query: avg(vllm:kv_cache_usage_perc{namespace="serving"})
+      serverAddress: http://mon-kube-prometheus-prometheus.monitoring.svc:9090
+      threshold: '0.8'
+    type: prometheus
+  - metadata:
+      activationThreshold: '1'
+      query: sum(vllm:num_requests_waiting{namespace="serving"})
+      serverAddress: http://mon-kube-prometheus-prometheus.monitoring.svc:9090
+      threshold: '5'
+    type: prometheus
