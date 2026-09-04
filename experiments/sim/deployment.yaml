@@ -24,6 +24,7 @@ spec:
             - --max-num-seqs=8
             - --max-model-len=4096        # default 1024 rejects longctx (2048+512)
             - --enable-kvcache            # kv_cache_usage_perc is flat 0 without this
+            - --kv-cache-size=140         # 140×16=2240-token KV: measured full-load occupancy 0.85 (Task 11)
             - --time-to-first-token=200ms
             - --time-to-first-token-std-dev=50ms
             - --inter-token-latency=40ms

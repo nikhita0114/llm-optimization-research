@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # experiments/cluster/install_stack.sh — monitoring + KEDA. Idempotent.
 set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"   # run correctly from any cwd / make -C
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add kedacore https://kedacore.github.io/charts
 helm repo update

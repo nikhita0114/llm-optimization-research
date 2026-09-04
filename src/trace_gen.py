@@ -20,6 +20,10 @@ def generate(pattern, seed):
             d = 150 * jitter()
             segs.append(_seg(i, "ramp", t, d, r * jitter(), 256, 128)); t += segs[-1]["duration_s"]
     elif pattern in ("spike", "longctx"):      # 4 bursts over ~18-20 min
+        # longctx bursts pair with the sim's longctx KV sizing
+        # (frozen.yaml sim.kv_cache_blocks.longctx = 1024): 8 concurrent
+        # 2048/512 requests fit KV (measured 0.92 occupancy, no rejections);
+        # the baseline 140-block KV would 4xx them.
         plan = [("baseline", 180, 0.35, 256, 128), ("burst", 90, 1.4, 2048 if pattern == "longctx" else 256, 512 if pattern == "longctx" else 128)] * 4
         for i, (lab, d, r, p, o) in enumerate(plan):
             d = d * jitter()

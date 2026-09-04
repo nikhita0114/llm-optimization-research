@@ -7,9 +7,12 @@ sim:                       # starting points; frozen by Task 11
   ttft_base_ms: 200
   itl_base_ms: 40
   time_factor_under_load: 3.0
-  kv_cache_blocks: 1024    # ×16 tokens; default 16384-token KV. Task 11 tunes
-                           # (~224 candidate) so short-pattern occupancy reaches
-                           # thresholds (notes/signal_liveness.md)
+  kv_cache_blocks:         # ×16 tokens/replica. Sim rejects (4xx) requests that
+                           # don't fit FREE KV under concurrency; per-pattern
+                           # sizing keeps 8 concurrent admitted in both mixes
+                           # (measured 2026-09-05, notes/signal_liveness.md):
+    baseline: 140          # 2240-token KV; 256/128 full load -> 0.85 occupancy
+    longctx: 1024          # 16384-token KV; 1536/384 bursts -> 0.92 occupancy
   max_model_len: 4096
 capacity:
   cap_rps: null            # per-replica request capacity — Task 11

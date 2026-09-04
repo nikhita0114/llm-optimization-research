@@ -36,3 +36,24 @@ With the default kv-cache-size (16 384 tokens/replica):
 - Long pattern (longctx, 2048/512): kv plateaus ≈ **0.92** — τ_kv reachable.
 
 ⇒ Task 11 must shrink `--kv-cache-size` (operating point, recorded in `frozen.yaml` `sim:`) so short-pattern full load (~8 × 384 = 3 072 tokens) lands at ≈ 0.8–0.9 occupancy: **~224 blocks (3 584 tokens)** is the starting candidate; measure and freeze. longctx then pegs kv at ~1.0 (semantically correct: extreme KV pressure). Composite τ_q=5 is already reachable (queue ≫ 5 under saturation).
+
+## KV sizing decision (Task 11, 2026-09-05) — per-pattern
+
+Measured KV behavior of the sim (all with `--enable-kvcache`):
+
+| Config | Observation |
+|---|---|
+| 1024 blocks (16 384 tok), 256/128 | full load occupancy ≈ 0.12 (thresholds unreachable) |
+| 224 blocks, 256/128 | full load occupancy 0.53 |
+| **140 blocks (2 240 tok), 256/128** | **full load occupancy 0.85**; 8 running admitted; 0 errors |
+| 140 blocks, 2048/512 | **28/30 requests 4xx-rejected**: admission requires the request to fit FREE KV; one 2 048-prompt request holds ≈ 1 424 tok |
+| 1024 blocks, 2048/512 | 8 running admitted, occupancy **0.923**, 0 errors |
+
+Decision: **per-pattern KV size, frozen in `frozen.yaml` `sim.kv_cache_blocks`** — `baseline: 140` (ramp/spike/diurnal), `longctx: 1024`. Rationale:
+
+- The sim 4xx-rejects requests that do not fit free KV (it does not queue them) — one KV size cannot both make short-pattern occupancy threshold-reachable AND sustain 8-concurrent 2 048-token bursts.
+- Within each pattern all 6 arms run an identical sim config — the "signal is the only differing variable" invariant (spec §1) holds. KV size is part of the pattern's workload envelope (a long-context workload is provisioned with a larger cache), not an arm variable.
+- kv-arm threshold 0.70 and WVA τ_kv 0.8 are reachable in both families (0.85 / 0.92).
+- `repro.sh` (Task 12) patches `--kv-cache-size` per pattern before each run; deployment default is 140.
+
+One more sim behavior discovered: under `time-factor-under-load=3.0`, long outputs take ~46–60 s per request (0.6 s TTFT + 384–512 × 120 ms) — 90 s longctx bursts still complete requests, but 30 s probes show `incomplete`>0 with 0 errors. Not a rejection problem; expected saturation dynamics.
