@@ -1,0 +1,41 @@
+# experiments/sim/deployment.yaml
+apiVersion: v1
+kind: Namespace
+metadata: {name: serving}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-sim
+  namespace: serving
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: llm-sim}}
+  template:
+    metadata:
+      labels: {app: llm-sim}
+    spec:
+      containers:
+        - name: sim
+          image: ghcr.io/llm-d/llm-d-inference-sim:v0.9.0
+          args:
+            - --port=8000
+            - --model=dummy-model        # regex tokenizer; no HF download
+            - --max-num-seqs=8
+            - --time-to-first-token=200ms
+            - --time-to-first-token-std-dev=50ms
+            - --inter-token-latency=40ms
+            - --inter-token-latency-std-dev=10ms
+            - --time-factor-under-load=3.0
+            - --latency-calculator=constant
+          env:
+            - name: PYTHONHASHSEED       # per-run seed; set by repro.sh
+              value: "0"
+          ports: [{containerPort: 8000}]
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          readinessProbe:
+            httpGet: {path: /metrics, port: 8000}
+            initialDelaySeconds: 2
+            periodSeconds: 5
