@@ -130,6 +130,14 @@ Working invocation (all runs must use this shape):
 - `--kv-cache-size` (blocks, ×16 tokens) default 1024 → 16 384-token KV; Task 11 tunes it (~224 candidate) per `notes/signal_liveness.md`.
 - `PYTHONHASHSEED` env is honored as hash seed (confirmed in `--help`).
 
+## guidellm report schema (Task 8 probe, 2026-09-05)
+
+- Per-request records: `doc["benchmarks"][0]["requests"]["successful"]` — list of dicts.
+- Fields: `time_to_first_token_ms` (ms!), `request_latency` (s), `output_tokens`, `request_start_time`/`request_end_time` (epoch s), plus summary dicts under `benchmarks[0].metrics` (percentiles keyed successful/errored/incomplete/total).
+- `requests.incomplete` = in flight at `max_duration` cutoff; **`request_latency` is always None there** → excluded from parsed rows (see `src/run_phases.py` docstring).
+- guidellm defaults to `seed={kind: static, value: 42}`; `run_schedule` passes the schedule seed explicitly (`--seed kind=static,seed=<n>`).
+- pandas 3 note: `pd.read_json()` cannot parse these reports ("Mixing dicts with non-Series") — always `json.load` them.
+
 **Findings from the help (consumed by Task 8):**
 1. A seed option **exists**: `--seed kind=static,...` → `run_schedule` adds `--seed kind=static,seed=<schedule seed>` for reproducibility (spec §7.2).
 2. Output `kind=json,path=...` syntax confirmed.
