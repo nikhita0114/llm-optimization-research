@@ -22,6 +22,8 @@ spec:
             - --port=8000
             - --model=dummy-model        # regex tokenizer; no HF download
             - --max-num-seqs=8
+            - --max-model-len=4096        # default 1024 rejects longctx (2048+512)
+            - --enable-kvcache            # kv_cache_usage_perc is flat 0 without this
             - --time-to-first-token=200ms
             - --time-to-first-token-std-dev=50ms
             - --inter-token-latency=40ms
@@ -29,6 +31,9 @@ spec:
             - --time-factor-under-load=3.0
             - --latency-calculator=constant
           env:
+            - name: POD_IP               # required by --enable-kvcache
+              valueFrom:
+                fieldRef: {fieldPath: status.podIP}
             - name: PYTHONHASHSEED       # per-run seed; set by repro.sh
               value: "0"
           ports: [{containerPort: 8000}]

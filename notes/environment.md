@@ -104,6 +104,32 @@ Options:
 
 Verified 2026-09-05: `/-/healthy` OK; `container_cpu_usage_seconds_total` (cAdvisor) and `node_cpu_seconds_total` (node-exporter) both return non-empty results via `localhost:30090`.
 
+## guidellm 0.7.3 invocation quirks (found in Task 6)
+
+Working invocation (all runs must use this shape):
+
+```bash
+.venv/bin/guidellm run \
+  --backend kind=openai_http,target=http://localhost:30080/v1,model=dummy-model \
+  --profile kind=constant,rate=<R> \
+  --data kind=synthetic_text,prompt_tokens=<P>,output_tokens=<O> \
+  --constraint kind=max_duration,seconds=<S> \
+  --tokenizer kind=hf_auto,model=openai-community/gpt2 \
+  --output kind=json,path=<file>
+```
+
+1. `--output` requires `kind=json,path=...` (bare `json path=...` is rejected).
+2. `--tokenizer` must be pinned to a real HF tokenizer or guidellm tries to download the backend model name (`dummy-model`) from HuggingFace and dies.
+3. A `--seed kind=static,...` option exists (Task 8 wires it in).
+
+## sim (llm-d-inference-sim v0.9.0) flags discovered in Task 6
+
+- `--enable-kvcache` is OFF by default; `vllm:kv_cache_usage_perc` is flat 0 without it.
+- `--enable-kvcache` requires `POD_IP` env (fieldRef `status.podIP`) or the sim crash-loops at startup.
+- `--max-model-len` defaults to 1024 (input+output); longctx (2048+512) needs 4096.
+- `--kv-cache-size` (blocks, ×16 tokens) default 1024 → 16 384-token KV; Task 11 tunes it (~224 candidate) per `notes/signal_liveness.md`.
+- `PYTHONHASHSEED` env is honored as hash seed (confirmed in `--help`).
+
 **Findings from the help (consumed by Task 8):**
 1. A seed option **exists**: `--seed kind=static,...` → `run_schedule` adds `--seed kind=static,seed=<schedule seed>` for reproducibility (spec §7.2).
 2. Output `kind=json,path=...` syntax confirmed.
