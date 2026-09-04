@@ -90,6 +90,11 @@ Options:
   --help                          Show this message for details.
 ```
 
+## Cluster baseline (Task 2, 2026-09-05)
+
+- `k3d-sigscale-server-0`: Ready, v1.31.5+k3s1
+- Memory at idle cluster (30 s after create): server container **412.7 MiB** (budget < 1.5 GiB ✓), serverlb 7.3 MiB
+
 **Findings from the help (consumed by Task 8):**
 1. A seed option **exists**: `--seed kind=static,...` → `run_schedule` adds `--seed kind=static,seed=<schedule seed>` for reproducibility (spec §7.2).
 2. Output `kind=json,path=...` syntax confirmed.
