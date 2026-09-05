@@ -36,11 +36,14 @@ def collect(run_dir, frozen_path="experiments/config/frozen.yaml"):
     cap = frozen["capacity"]["cap_rps"]; slo = frozen["slo"]
     tt, tp = slo["ttft_baseline_s"] * slo["ttft_target_mult"], slo["tpot_baseline_s"] * slo["tpot_target_mult"]
     rts, rvs = series["replicas"]
+    # fetch_series returns seconds-since-t0; rebase the manifest epochs to the
+    # same origin or overshoot/scaleout compare absolute epochs vs rebased ts
+    man_rel = man.assign(start_epoch=man.start_epoch - t0, end_epoch=man.end_epoch - t0)
     metrics = {
         "slo": slo_violation_rate(reqs, tt, tp),
         "replica_seconds": replica_seconds(rts, rvs),
-        "overshoot": overshoot(rts, rvs, man, cap),
-        "scaleout": scaleout_latency(man, rts, rvs),
+        "overshoot": overshoot(rts, rvs, man_rel, cap),
+        "scaleout": scaleout_latency(man_rel, rts, rvs),
         "thrash": thrash(rts, rvs, window_s=t1 - t0),
         "fingerprint": {"cap_rps": cap, "ttft_target_s": tt, "tpot_target_s": tp,
                         "calibrated": frozen["calibrated"]},

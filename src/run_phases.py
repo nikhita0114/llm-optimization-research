@@ -14,7 +14,7 @@
 # share; the 20 s super-saturated fixture overrepresents it.
 # If guidellm's schema changed on upgrade, fix _request_records and the
 # extraction lines — never the DataFrame contract.
-import json, subprocess, time
+import json, os, subprocess, time
 from pathlib import Path
 import pandas as pd
 
@@ -59,17 +59,27 @@ def run_schedule(schedule, run_dir, target_url="http://localhost:30080/v1",
         start = time.time()
         segdir = run_dir / f"seg_{s['idx']}"; segdir.mkdir(exist_ok=True)
         if s["rate"] > 0:
+            # each flag and its value must be SEPARATE argv elements (a
+            # combined "--backend kind=..." string makes click parse the
+            # option name as "--backend kind" and die with exit 2)
             cmd = [guidellm_bin, "run",
-                   f"--backend kind=openai_http,target={target_url},model={model}",
-                   f"--profile kind=constant,rate={s['rate']}",
-                   f"--data kind=synthetic_text,prompt_tokens={s['prompt_tokens']},output_tokens={s['output_tokens']}",
-                   f"--constraint kind=max_duration,seconds={s['duration_s']}",
+                   "--backend", f"kind=openai_http,target={target_url},model={model}",
+                   "--profile", f"kind=constant,rate={s['rate']}",
+                   "--data", f"kind=synthetic_text,prompt_tokens={s['prompt_tokens']},output_tokens={s['output_tokens']}",
+                   "--constraint", f"kind=max_duration,seconds={s['duration_s']}",
                    # client-side tokenizer only; default resolves to the backend
                    # model name and dies on the HF lookup (Task 6 finding)
-                   "--tokenizer kind=hf_auto,model=openai-community/gpt2",
-                   f"--seed kind=static,seed={schedule['seed']}",
-                   f"--output kind=json,path={segdir}/report.json"]
-            subprocess.run(cmd, check=True, capture_output=True)
+                   "--tokenizer", "kind=hf_auto,model=openai-community/gpt2",
+                   "--seed", f"kind=static,value={schedule['seed']}",
+                   "--output", f"kind=json,path={segdir}/report.json"]
+            env = dict(os.environ, HF_HUB_OFFLINE="1")   # tokenizer is cached;
+            # online HF-hub checks flake (transient exit 2) mid-batch
+            try:
+                subprocess.run(cmd, check=True, capture_output=True, env=env)
+            except subprocess.CalledProcessError as e:
+                tail = (e.stderr or b"")[-2000:].decode(errors="replace")
+                raise RuntimeError(f"guidellm failed on segment {s['idx']} "
+                                   f"(exit {e.returncode}):\n{tail}") from e
         else:
             time.sleep(s["duration_s"])           # offered-load gap
         manifest.append({k: s[k] for k in
