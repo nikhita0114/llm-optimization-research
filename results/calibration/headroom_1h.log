@@ -1,0 +1,6 @@
+scaledobject.keda.sh "sim-queue" deleted from serving namespace
+deployment.apps/llm-sim scaled
+driving 3600 s at 0.75 req/s (1.5x cap) with 6 replicas
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+No resources found in serving namespace.
+no oom events

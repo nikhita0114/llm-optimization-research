@@ -2,5 +2,6 @@
 __pycache__/
 .pytest_cache/
 results/**/raw/
+results/**/seg_*/
 docs/superpowers/specs/.~lock.*
 docs/superpowers/plans/.~lock.*

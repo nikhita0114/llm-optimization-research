@@ -1,0 +1,68 @@
+make: Entering directory '/home/nikhita/llm-optimization-research/experiments'
+bash repro.sh queue spike 1
+scaledobject.keda.sh "sim-queue" deleted from serving namespace
+deployment.apps/llm-sim scaled
+deployment "llm-sim" successfully rolled out
+Warning: PollingInterval is configured but is not relevant. PollingInterval is only relevant when minReplicaCount = 0 or idleReplicaCount = 0 or useCachedMetrics is enabled
+Warning: CooldownPeriod is configured but is not relevant. CooldownPeriod is only relevant when minReplicaCount = 0 or idleReplicaCount = 0
+scaledobject.keda.sh/sim-queue created
+{
+  "slo": {
+    "ttft": 0.2920353982300885,
+    "tpot": 0.2713864306784661,
+    "either": 0.3333333333333333,
+    "ttft_percentiles": {
+      "p50": 0.2878584861755371,
+      "p95": 12.00647068023678,
+      "p99": 17.31627569198609
+    },
+    "tpot_percentiles": {
+      "p50": 0.0601605036127285,
+      "p95": 0.12090661075171519,
+      "p99": 0.12173325921606823
+    }
+  },
+  "replica_seconds": 1867.5,
+  "overshoot": {
+    "max": 1.0,
+    "integral_replica_seconds": 652.5
+  },
+  "scaleout": [
+    {
+      "segment_idx": 1,
+      "load_step_epoch": 1788571155.4705584,
+      "first_ready_epoch": null,
+      "latency_s": null
+    },
+    {
+      "segment_idx": 3,
+      "load_step_epoch": 1788571469.0391655,
+      "first_ready_epoch": null,
+      "latency_s": null
+    },
+    {
+      "segment_idx": 5,
+      "load_step_epoch": 1788571774.0285218,
+      "first_ready_epoch": null,
+      "latency_s": null
+    },
+    {
+      "segment_idx": 7,
+      "load_step_epoch": 1788572075.181718,
+      "first_ready_epoch": null,
+      "latency_s": null
+    }
+  ],
+  "thrash": {
+    "scale_events_per_min": 0.1468270658047906,
+    "direction_reversals": 2.0
+  },
+  "fingerprint": {
+    "cap_rps": 0.5,
+    "ttft_target_s": 0.42000000000000004,
+    "tpot_target_s": 0.082,
+    "calibrated": true
+  }
+}
+done: results/queue_spike_seed1/metrics.json
+make: Leaving directory '/home/nikhita/llm-optimization-research/experiments'

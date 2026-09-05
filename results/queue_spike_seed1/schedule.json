@@ -1,0 +1,87 @@
+{
+  "pattern": "spike",
+  "seed": 1,
+  "segments": [
+    {
+      "idx": 0,
+      "label": "baseline",
+      "start_s": 0.0,
+      "duration_s": 183,
+      "rate_frac": 0.3644,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.182
+    },
+    {
+      "idx": 1,
+      "label": "burst",
+      "start_s": 183.0,
+      "duration_s": 91,
+      "rate_frac": 1.3088,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.654
+    },
+    {
+      "idx": 2,
+      "label": "baseline",
+      "start_s": 274.0,
+      "duration_s": 188,
+      "rate_frac": 0.3578,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.179
+    },
+    {
+      "idx": 3,
+      "label": "burst",
+      "start_s": 462.0,
+      "duration_s": 87,
+      "rate_frac": 1.4407,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.72
+    },
+    {
+      "idx": 4,
+      "label": "baseline",
+      "start_s": 549.0,
+      "duration_s": 183,
+      "rate_frac": 0.3551,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.178
+    },
+    {
+      "idx": 5,
+      "label": "burst",
+      "start_s": 732.0,
+      "duration_s": 90,
+      "rate_frac": 1.4383,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.719
+    },
+    {
+      "idx": 6,
+      "label": "baseline",
+      "start_s": 822.0,
+      "duration_s": 173,
+      "rate_frac": 0.3471,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.174
+    },
+    {
+      "idx": 7,
+      "label": "burst",
+      "start_s": 995.0,
+      "duration_s": 87,
+      "rate_frac": 1.4419,
+      "prompt_tokens": 256,
+      "output_tokens": 128,
+      "rate": 0.721
+    }
+  ],
+  "cap_rps": 0.5
+}
