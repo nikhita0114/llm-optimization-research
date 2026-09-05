@@ -1,8 +1,6 @@
 # tests/test_gen_scaledobjects.py
-# Pre-calibration, rps_per_replica and ttft_p95_s are null → the generator
-# intentionally skips those arms (4 files: cpu, queue, kv, composite). After
-# Task 11 freezes numbers, test_all_six_arms_after_calibration (added then)
-# asserts exactly 6.
+# Post-calibration (Task 11, calibrated: true): all 6 arms must generate,
+# including rps (threshold = cap_rps) and ttft (threshold = SLO target).
 import yaml
 from src.gen_scaledobjects import generate_all
 
@@ -20,6 +18,16 @@ def _expected_arms():
             arms.append(arm)
     return arms
 
+def test_frozen_is_calibrated():
+    frozen = yaml.safe_load(open(FROZEN))
+    assert frozen["calibrated"] is True
+    assert frozen["capacity"]["cap_rps"] is not None
+
+def test_all_six_arms_generate_after_calibration(tmp_path):
+    assert sorted(_expected_arms()) == ["composite", "cpu", "kv", "queue", "rps", "ttft"]
+    files = generate_all(FROZEN, str(tmp_path))
+    assert len(files) == 6
+
 def test_uniform_mechanism_across_generated_arms(tmp_path):
     files = generate_all(FROZEN, str(tmp_path))
     assert len(files) == len(_expected_arms())
@@ -34,7 +42,7 @@ def test_uniform_mechanism_across_generated_arms(tmp_path):
         assert spec["scaleTargetRef"]["name"] == "llm-sim"
         for trig in spec["triggers"]:
             assert trig["type"] == "prometheus"
-            assert "mon-kube-prometheus-prometheus.monitoring.svc:9090" in trig["metadata"]["serverAddress"]
+            assert "mon-kube-prometheus-stack-prometheus.monitoring.svc:9090" in trig["metadata"]["serverAddress"]
 
 def test_single_arms_distinct_and_composite_is_threshold_or(tmp_path):
     files = generate_all(FROZEN, str(tmp_path))

@@ -1,0 +1,5 @@
+No resources found
+deployment.apps/llm-sim scaled
+driving 600 s at 0.375 req/s (1.5x cap) with 6 replicas
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+no oom events

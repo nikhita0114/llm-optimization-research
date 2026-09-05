@@ -138,6 +138,12 @@ Working invocation (all runs must use this shape):
 - guidellm defaults to `seed={kind: static, value: 42}`; `run_schedule` passes the schedule seed explicitly (`--seed kind=static,seed=<n>`).
 - pandas 3 note: `pd.read_json()` cannot parse these reports ("Mixing dicts with non-Series") — always `json.load` them.
 
+## Task 11 findings (2026-09-05)
+
+- **Prometheus in-cluster service is `mon-kube-prometheus-stack-prometheus.monitoring.svc:9090`** (chart 89.x names it "stack"; the older `mon-kube-prometheus-prometheus` convention in the plan does not resolve — KEDA logs `no such host` and the HPA shows `<unknown>`). Generator + tests updated.
+- **KEDA 2.20 ignores `pollingInterval` and `cooldownPeriod` when minReplicaCount ≥ 1** (apply-time warning); effective autoscaler cadence is the HPA sync period (15 s). Recorded in `frozen.yaml` timing block.
+- **Capacity measurement requires verified drains**: the sim's `time-factor-under-load` makes saturated backlogs cascade — a fixed 60 s inter-point drain contaminated the first sweep (its 0.375+ points measured the cascade, not the knee). Clean-start evidence: 0.375 rps serves at 0.36 achieved with zero queue. `calibrate_capacity.sh` now waits for `waiting=0` (verified via Prometheus) between points; the contaminated first sweep is archived in `results/calibration/contaminated_sweep_v1/`.
+
 **Findings from the help (consumed by Task 8):**
 1. A seed option **exists**: `--seed kind=static,...` → `run_schedule` adds `--seed kind=static,seed=<schedule seed>` for reproducibility (spec §7.2).
 2. Output `kind=json,path=...` syntax confirmed.

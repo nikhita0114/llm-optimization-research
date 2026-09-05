@@ -1,7 +1,7 @@
 # experiments/config/frozen.yaml — THE numeric source of truth. Candidate
 # values now; Task 11 sets calibrated: true with measured numbers. Any change
 # here is a visible git diff on the record.
-calibrated: false
+calibrated: true
 sim:                       # starting points; frozen by Task 11
   max_num_seqs: 8
   ttft_base_ms: 200
@@ -15,18 +15,24 @@ sim:                       # starting points; frozen by Task 11
     longctx: 1024          # 16384-token KV; 1536/384 bursts -> 0.92 occupancy
   max_model_len: 4096
 capacity:
-  cap_rps: null            # per-replica request capacity — Task 11
-slo:                       # frozen at Task 11; multipliers of low-load baseline
-  ttft_baseline_s: null
-  tpot_baseline_s: null
+  cap_rps: 0.5             # measured 2026-09-05 clean sweep (verified drains,
+                           # results/calibration/clean_*.json): waiting stays 0
+                           # through 0.5, first sustained queue at 0.625;
+                           # throughput ceiling 0.458 rps
+slo:                       # frozen 2026-09-05; low-load p95 baselines x multipliers
+  ttft_baseline_s: 0.28    # p95 @ 0.125 rps clean (clean_0.125.json)
+  tpot_baseline_s: 0.041   # p95 @ 0.125 rps clean
   ttft_target_mult: 1.5
   tpot_target_mult: 2.0
 thresholds:                # per-arm KEDA thresholds (Task 11 calibrates)
-  cpu_cores_per_replica: 0.35
-  rps_per_replica: null    # = cap_rps
+  cpu_cores_per_replica: 0.025  # calibrated: full-load per-replica sim cpu
+                                # measured ~0.035 cores (latency simulator,
+                                # not compute-bound); 0.025 ≈ 70% of that —
+                                # the plan's 0.35 candidate was 10x too high
+  rps_per_replica: 0.5     # = cap_rps
   queue_per_replica: 5
   kv_frac: 0.70
-  ttft_p95_s: null         # = ttft_baseline_s * 1.5
+  ttft_p95_s: 0.42         # = ttft_baseline_s * 1.5 (= SLO target; arm scales at the boundary)
   composite_kv_frac: 0.80  # WVA threshold-OR tau_kv (paper §V-A; repo default)
   composite_queue: 5       # WVA threshold-OR tau_q (paper §V-A; repo default)
   cpu_activation: 0.05
@@ -45,8 +51,11 @@ composite:                  # reference condition, NOT a treatment arm (spec §6
   deviation_note: null      # Task 11: set if a WVA threshold proves inert on this host
 timing:                     # spec §6.3 — identical across arms; recorded for
                              # the run fingerprint so every metrics.json carries it
-  keda_polling_interval_s: 30
-  keda_cooldown_period_s: 300      # scale-to-zero only; inert at min=1
-  hpa_sync_period_s: 15            # k3s default, unmodified
+  keda_polling_interval_s: 30      # DEVIATION (KEDA 2.20, min>=1): warning says
+                             # pollingInterval is ignored unless min/idle=0 or
+                             # useCachedMetrics — effective evaluation cadence is
+                             # the HPA sync period below. Uniform across arms.
+  keda_cooldown_period_s: 300      # inert at min=1 (KEDA 2.20 confirms)
+  hpa_sync_period_s: 15            # k3s default, unmodified — the real loop rate
   hpa_scale_down_stabilization_s: 300   # the 1→N downscale dampener
   hpa_scale_up_stabilization_s: 0

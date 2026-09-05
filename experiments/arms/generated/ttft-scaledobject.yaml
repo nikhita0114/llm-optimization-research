@@ -1,7 +1,7 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: sim-queue
+  name: sim-ttft
   namespace: serving
 spec:
   advanced:
@@ -19,8 +19,8 @@ spec:
     name: llm-sim
   triggers:
   - metadata:
-      activationThreshold: '1'
-      query: sum(vllm:num_requests_waiting{namespace="serving"})
+      activationThreshold: '0.05'
+      query: histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{namespace="serving"}[2m])))
       serverAddress: http://mon-kube-prometheus-stack-prometheus.monitoring.svc:9090
-      threshold: '5'
+      threshold: '0.42'
     type: prometheus

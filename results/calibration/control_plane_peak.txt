@@ -1,0 +1,3 @@
+CONTAINER ID   NAME                    CPU %     MEM USAGE / LIMIT     MEM %     NET I/O          BLOCK I/O        PIDS
+05755f127f7f   k3d-sigscale-serverlb   0.01%     3.363MiB / 7.658GiB   0.04%     102MB / 102MB    295kB / 4.25MB   15
+b1dbfc5d2bdc   k3d-sigscale-server-0   15.86%    1.21GiB / 7.658GiB    15.80%    489MB / 67.9MB   781MB / 2.65GB   289

@@ -21,6 +21,6 @@ spec:
   - metadata:
       activationThreshold: '0.05'
       query: sum(rate(container_cpu_usage_seconds_total{namespace="serving",container="sim"}[2m]))
-      serverAddress: http://mon-kube-prometheus-prometheus.monitoring.svc:9090
-      threshold: '0.35'
+      serverAddress: http://mon-kube-prometheus-stack-prometheus.monitoring.svc:9090
+      threshold: '0.025'
     type: prometheus

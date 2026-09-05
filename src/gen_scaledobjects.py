@@ -22,7 +22,7 @@ UNIFORM = dict(
 
 def _prometheus_trigger(query, threshold, activation):
     return {"type": "prometheus",
-            "metadata": {"serverAddress": "http://mon-kube-prometheus-prometheus.monitoring.svc:9090",
+            "metadata": {"serverAddress": "http://mon-kube-prometheus-stack-prometheus.monitoring.svc:9090",
                          "query": query, "threshold": str(threshold),
                          "activationThreshold": str(activation)}}
 

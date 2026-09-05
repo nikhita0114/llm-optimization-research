@@ -21,6 +21,6 @@ spec:
   - metadata:
       activationThreshold: '0.1'
       query: avg(vllm:kv_cache_usage_perc{namespace="serving"})
-      serverAddress: http://mon-kube-prometheus-prometheus.monitoring.svc:9090
+      serverAddress: http://mon-kube-prometheus-stack-prometheus.monitoring.svc:9090
       threshold: '0.7'
     type: prometheus
