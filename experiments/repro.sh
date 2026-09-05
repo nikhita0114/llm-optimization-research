@@ -31,6 +31,8 @@ kubectl -n serving rollout status deploy/llm-sim --timeout=120s
 kubectl apply -f experiments/arms/generated/${ARM}-scaledobject.yaml
 sleep 60      # let KEDA's first evaluation happen before load starts
 
+mkdir -p "$RUN"
+.venv/bin/python -m src.collect_run --swap-snapshot "$RUN/swap_start.json"
 .venv/bin/python - "$PATTERN" "$SEED" "$RUN" <<'EOF'
 import sys, json
 from pathlib import Path
