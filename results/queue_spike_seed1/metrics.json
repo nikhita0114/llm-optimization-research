@@ -1,20 +1,21 @@
 {
   "slo": {
-    "ttft": 0.2920353982300885,
-    "tpot": 0.2713864306784661,
-    "either": 0.3333333333333333,
+    "ttft": 0.3333333333333333,
+    "tpot": 0.3601190476190476,
+    "either": 0.37797619047619047,
     "ttft_percentiles": {
-      "p50": 0.2878584861755371,
-      "p95": 12.00647068023678,
-      "p99": 17.31627569198609
+      "p50": 0.2944425344467163,
+      "p95": 12.895474195480347,
+      "p99": 17.480541896820057
     },
     "tpot_percentiles": {
-      "p50": 0.0601605036127285,
-      "p95": 0.12090661075171519,
-      "p99": 0.12173325921606823
-    }
+      "p50": 0.056087787695757,
+      "p95": 0.12084916539079557,
+      "p99": 0.12143275268434534
+    },
+    "n_requests": 336
   },
-  "replica_seconds": 1867.5,
+  "replica_seconds": 1897.5,
   "overshoot": {
     "max": 1.0,
     "integral_replica_seconds": 240.0
@@ -22,32 +23,58 @@
   "scaleout": [
     {
       "segment_idx": 1,
-      "load_step_epoch": 204.67922616004944,
-      "first_ready_epoch": 299.99966764450073,
-      "latency_s": 95.3204414844513
+      "load_step_epoch": 214.81148052215576,
+      "first_ready_epoch": 315.0004053115845,
+      "latency_s": 100.18892478942871
     },
     {
       "segment_idx": 3,
-      "load_step_epoch": 518.2478332519531,
+      "load_step_epoch": 540.8505101203918,
       "first_ready_epoch": null,
       "latency_s": null
     },
     {
       "segment_idx": 5,
-      "load_step_epoch": 823.2371895313263,
-      "first_ready_epoch": 899.9996676445007,
-      "latency_s": 76.76247811317444
+      "load_step_epoch": 852.1347768306732,
+      "first_ready_epoch": 930.0004053115845,
+      "latency_s": 77.86562848091125
     },
     {
       "segment_idx": 7,
-      "load_step_epoch": 1124.3903858661652,
+      "load_step_epoch": 1154.8944602012634,
       "first_ready_epoch": null,
       "latency_s": null
     }
   ],
   "thrash": {
-    "scale_events_per_min": 0.1468270658047906,
+    "scale_events_per_min": 0.14313526510013838,
     "direction_reversals": 2.0
+  },
+  "host": {
+    "swap": {
+      "end": {
+        "swap_total_kb": 4194300,
+        "swap_free_kb": 1082952,
+        "swap_cached_kb": 37696,
+        "swap_used_kb": 3111348,
+        "pswpin": 313653,
+        "pswpout": 1067855
+      },
+      "start": {
+        "swap_total_kb": 4194300,
+        "swap_free_kb": 1684504,
+        "swap_cached_kb": 51604,
+        "swap_used_kb": 2509796,
+        "pswpin": 188191,
+        "pswpout": 796136
+      },
+      "delta": {
+        "swap_used_delta_kb": 601552,
+        "pswpin_delta": 125462,
+        "pswpout_delta": 271719,
+        "swap_touched": true
+      }
+    }
   },
   "fingerprint": {
     "cap_rps": 0.5,
