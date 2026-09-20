@@ -1,0 +1,19 @@
+# arm	pattern	seed
+queue	ramp	2
+cpu	ramp	2
+rps	ramp	2
+kv	ramp	2
+ttft	ramp	2
+composite	ramp	2
+queue	spike	2
+cpu	spike	2
+rps	spike	2
+kv	spike	2
+ttft	spike	2
+composite	spike	2
+queue	longctx	2
+cpu	longctx	2
+rps	longctx	2
+kv	longctx	2
+ttft	longctx	2
+composite	longctx	2

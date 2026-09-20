@@ -13,3 +13,13 @@ reset:
 	kubectl -n serving scale deploy/llm-sim --replicas=1
 down:
 	k3d cluster delete sigscale
+
+NIGHTS = night1 night2 night3 night4
+$(NIGHTS):
+	cd .. && .venv/bin/python -m src.batch_runner experiments/batches/$@.tsv
+qa:
+	cd .. && .venv/bin/python -m src.agg_results qa
+summary:
+	cd .. && .venv/bin/python -m src.agg_results summary --out results/summary.csv
+	cd .. && .venv/bin/python -m src.agg_results variance --out results/variance.csv
+.PHONY: $(NIGHTS) qa summary

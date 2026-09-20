@@ -1,0 +1,7 @@
+# arm	pattern	seed
+queue	diurnal	2
+cpu	diurnal	2
+rps	diurnal	2
+kv	diurnal	2
+ttft	diurnal	2
+composite	diurnal	2
