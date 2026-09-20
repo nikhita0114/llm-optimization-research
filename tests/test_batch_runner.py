@@ -24,6 +24,7 @@ def test_run_plan_dry_run_marks_skip_and_todo(tmp_path, monkeypatch):
     (done / "metrics.json").write_text(json.dumps(metrics))   # a real QA-passing cell
     monkeypatch.setattr(br, "cluster_healthy", lambda: True)
     monkeypatch.setattr(br, "RESULTS_DIR", str(tmp_path))     # redirect cell lookup
+    monkeypatch.setattr(br, "BATCH_LOG", tmp_path / "batch_log")
     log = br.run_plan(_plan(tmp_path, [("queue", "spike", 1), ("cpu", "ramp", 1)]), dry_run=True)
     kinds = {cell: kind for kind, cell, _ in log}
     assert kinds["queue_spike_seed1"] == "SKIP"
@@ -32,6 +33,7 @@ def test_run_plan_dry_run_marks_skip_and_todo(tmp_path, monkeypatch):
 def test_run_plan_executes_missing_cell_and_qa_gates_it(tmp_path, monkeypatch):
     monkeypatch.setattr(br, "cluster_healthy", lambda: True)
     monkeypatch.setattr(br, "RESULTS_DIR", str(tmp_path))
+    monkeypatch.setattr(br, "BATCH_LOG", tmp_path / "batch_log")
     calls = []
     def fake_repro(arm, pattern, seed):
         calls.append((arm, pattern, seed))
@@ -48,6 +50,7 @@ def test_run_plan_executes_missing_cell_and_qa_gates_it(tmp_path, monkeypatch):
 def test_run_plan_aborts_after_double_failure(tmp_path, monkeypatch):
     monkeypatch.setattr(br, "cluster_healthy", lambda: True)
     monkeypatch.setattr(br, "RESULTS_DIR", str(tmp_path))
+    monkeypatch.setattr(br, "BATCH_LOG", tmp_path / "batch_log")
     monkeypatch.setattr(br, "_repro", lambda a, p, s: None)   # never produces metrics
     log = br.run_plan(_plan(tmp_path, [("cpu", "ramp", 1), ("cpu", "spike", 1)]))
     kinds = [k for k, _, _ in log]
