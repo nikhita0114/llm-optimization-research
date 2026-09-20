@@ -10,6 +10,9 @@ from src.agg_results import check_run
 HERE = Path(__file__).resolve().parents[1]
 RESULTS_DIR = "results"
 BATCH_LOG = HERE / "results" / "batch_log"
+CELL_TIMEOUT_S = 5400   # 90 min per attempt; the longest legitimate cell
+                        # (diurnal) is ~40 min, so 2x+ headroom before a wedged
+                        # repro.sh/locust/kubectl child burns the rest of the night.
 
 def parse_plan(path):
     rows = []
@@ -30,8 +33,14 @@ def cluster_healthy():
     return r.returncode == 0 and " Ready" in r.stdout
 
 def _repro(arm, pattern, seed):
-    subprocess.run(["bash", "experiments/repro.sh", arm, pattern, str(seed)],
-                   cwd=HERE, check=False)
+    try:
+        subprocess.run(["bash", "experiments/repro.sh", arm, pattern, str(seed)],
+                       cwd=HERE, check=False, timeout=CELL_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        # A wedged child must not stall the night: report it and let the QA
+        # gate fail this attempt, so run_plan's RETRY/FAIL/ABORT flow proceeds.
+        print(f"TIMEOUT {arm}_{pattern}_seed{seed} after {CELL_TIMEOUT_S}s", flush=True)
+        return None
 
 def run_plan(plan_path, dry_run=False):
     frozen = yaml.safe_load((HERE / "experiments/config/frozen.yaml").read_text())

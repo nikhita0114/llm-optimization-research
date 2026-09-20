@@ -1,5 +1,6 @@
 # tests/test_batch_runner.py
 import json
+import subprocess
 import yaml
 from pathlib import Path
 import src.batch_runner as br
@@ -55,3 +56,9 @@ def test_run_plan_aborts_after_double_failure(tmp_path, monkeypatch):
     log = br.run_plan(_plan(tmp_path, [("cpu", "ramp", 1), ("cpu", "spike", 1)]))
     kinds = [k for k, _, _ in log]
     assert kinds == ["RETRY", "FAIL", "ABORT"]                # 1st attempt, retry, abort
+
+def test_repro_survives_cell_timeout(monkeypatch):
+    def wedged(cmd, **kw):
+        raise subprocess.TimeoutExpired(cmd="x", timeout=br.CELL_TIMEOUT_S)
+    monkeypatch.setattr(br.subprocess, "run", wedged)
+    assert br._repro("cpu", "ramp", 1) is None                # swallowed, not raised
