@@ -1,5 +1,6 @@
 # tests/test_batch_runner.py
 import json
+import signal
 import subprocess
 import yaml
 from pathlib import Path
@@ -58,7 +59,27 @@ def test_run_plan_aborts_after_double_failure(tmp_path, monkeypatch):
     assert kinds == ["RETRY", "FAIL", "ABORT"]                # 1st attempt, retry, abort
 
 def test_repro_survives_cell_timeout(monkeypatch):
-    def wedged(cmd, **kw):
-        raise subprocess.TimeoutExpired(cmd="x", timeout=br.CELL_TIMEOUT_S)
-    monkeypatch.setattr(br.subprocess, "run", wedged)
+    # The load driver is repro.sh's *grandchild* (python run_phases), so a
+    # timeout must kill the whole process group: SIGKILLing only bash would
+    # orphan it to keep firing at the rig and contaminate the RETRY attempt.
+    seen, killed = {}, {}
+    class FakePopen:
+        # Faithful to the real contract: the timed call raises TimeoutExpired;
+        # the reap call afterwards (no timeout, process now SIGKILLed) returns.
+        def __init__(self, cmd, **kw):
+            seen["cmd"], seen["kw"], self.pid, self.calls = cmd, kw, 4242, 0
+        def communicate(self, timeout=None):
+            seen["timeout"] = timeout
+            self.calls += 1
+            if self.calls == 1:
+                raise subprocess.TimeoutExpired(cmd="x", timeout=timeout)
+            seen["reaped"] = True
+            return (None, None)
+    def no_run(*a, **kw):
+        raise AssertionError("_repro must not use subprocess.run: it orphans the load driver")
+    monkeypatch.setattr(br.subprocess, "run", no_run)      # fail fast if it regresses
+    monkeypatch.setattr(br.subprocess, "Popen", FakePopen)
+    monkeypatch.setattr("os.killpg", lambda pgid, sig: killed.update(pgid=pgid, sig=sig))
     assert br._repro("cpu", "ramp", 1) is None                # swallowed, not raised
+    assert seen["kw"]["start_new_session"] is True            # what makes pid == pgid
+    assert (killed["pgid"], killed["sig"]) == (4242, signal.SIGKILL)   # popped pid is the pgid

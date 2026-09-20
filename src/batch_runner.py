@@ -2,7 +2,7 @@
 # Idempotent: completed+QA-passing cells are skipped, so re-running a night
 # after an abort resumes where it left off. Cluster-unhealthy => abort before
 # burning cells (spec §7.1 stop-and-rethink, not silent degrade).
-import subprocess, sys, time
+import os, signal, subprocess, sys, time
 from pathlib import Path
 import yaml
 from src.agg_results import check_run
@@ -33,10 +33,21 @@ def cluster_healthy():
     return r.returncode == 0 and " Ready" in r.stdout
 
 def _repro(arm, pattern, seed):
+    # start_new_session puts the cell in its own process group (pid == pgid).
+    # The real load driver is repro.sh's *grandchild* — python running
+    # run_phases for minutes — so a timeout that killed only bash would orphan
+    # it to keep firing at the rig while the RETRY attempt re-runs the cell,
+    # silently contaminating that attempt's load. Kill the group instead.
+    p = subprocess.Popen(["bash", "experiments/repro.sh", arm, pattern, str(seed)],
+                         cwd=HERE, start_new_session=True)
     try:
-        subprocess.run(["bash", "experiments/repro.sh", arm, pattern, str(seed)],
-                       cwd=HERE, check=False, timeout=CELL_TIMEOUT_S)
+        p.communicate(timeout=CELL_TIMEOUT_S)
     except subprocess.TimeoutExpired:
+        try:
+            os.killpg(p.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass                                    # already gone — fine
+        p.communicate()                             # reap; no zombie left behind
         # A wedged child must not stall the night: report it and let the QA
         # gate fail this attempt, so run_plan's RETRY/FAIL/ABORT flow proceeds.
         print(f"TIMEOUT {arm}_{pattern}_seed{seed} after {CELL_TIMEOUT_S}s", flush=True)
