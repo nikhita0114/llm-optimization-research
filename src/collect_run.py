@@ -69,7 +69,7 @@ def collect(run_dir, frozen_path="experiments/config/frozen.yaml"):
     # same origin or overshoot/scaleout compare absolute epochs vs rebased ts
     man_rel = man.assign(start_epoch=man.start_epoch - t0, end_epoch=man.end_epoch - t0)
     metrics = {
-        "slo": slo_violation_rate(reqs, tt, tp),
+        "slo": dict(slo_violation_rate(reqs, tt, tp), n_requests=int(len(reqs))),
         "replica_seconds": replica_seconds(rts, rvs),
         "overshoot": overshoot(rts, rvs, man_rel, cap),
         "scaleout": scaleout_latency(man_rel, rts, rvs),
@@ -78,6 +78,8 @@ def collect(run_dir, frozen_path="experiments/config/frozen.yaml"):
         "fingerprint": {"cap_rps": cap, "ttft_target_s": tt, "tpot_target_s": tp,
                         "calibrated": frozen["calibrated"]},
     }
+    (Path(run_dir) / "metrics.json").write_text(json.dumps(metrics, indent=2, default=float))
+    return metrics
 
 def _host_swap(run_dir):
     # repro.sh writes swap_start.json at load start; delta vs end snapshot
@@ -90,8 +92,6 @@ def _host_swap(run_dir):
         out["start"] = start
         out["delta"] = swap_delta(start, end)
     return out
-    (Path(run_dir) / "metrics.json").write_text(json.dumps(metrics, indent=2, default=float))
-    return metrics
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3 and sys.argv[1] == "--swap-snapshot":

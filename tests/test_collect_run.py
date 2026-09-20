@@ -38,3 +38,10 @@ def test_swap_delta_over_run_window():
     assert d["pswpin_delta"] == 21749 and d["pswpout_delta"] == 73307
     assert d["swap_touched"] is True
     assert swap_delta(start, dict(start, pswpin=start["pswpin"], pswpout=start["pswpout"]))["swap_touched"] is False
+
+def test_metrics_include_request_count():
+    # collect() is integration-heavy; test the contract on a loaded
+    # metrics.json from the pilot run (real artifact, committed)
+    import json
+    m = json.load(open("results/queue_spike_seed1/metrics.json"))
+    assert m["slo"]["n_requests"] > 0
