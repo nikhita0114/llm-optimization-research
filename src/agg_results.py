@@ -81,7 +81,8 @@ def cell_variance(df):
     return pd.DataFrame(out)
 
 def _cv(s):
-    return float(np.std(s) / np.mean(s)) if len(s) > 1 and np.mean(s) > 0 else None
+    # sample std (ddof=1): unbiased CV from the seed sample; len>1 guarded above
+    return float(np.std(s, ddof=1) / np.mean(s)) if len(s) > 1 and np.mean(s) > 0 else None
 
 def _qa_all():
     frozen = yaml.safe_load(Path(FROZEN_PATH).read_text())

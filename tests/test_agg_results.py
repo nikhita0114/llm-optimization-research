@@ -65,7 +65,7 @@ def test_cell_variance_flags_high_cv(tmp_path):
     v = cell_variance(aggregate(str(tmp_path)))
     ttft = v[(v.arm == "ttft")].iloc[0]
     cpu = v[(v.arm == "cpu")].iloc[0]
-    assert bool(ttft.topup_flag) is True                        # cv(0.25,0.9) ~ 0.72
+    assert bool(ttft.topup_flag) is True                        # cv = 0.80 (ddof=1)
     assert bool(cpu.topup_flag) is False
     assert set(v.columns) >= {"arm", "pattern", "n_seeds", "either_mean", "either_cv",
                               "thrash_cv", "topup_flag"}
