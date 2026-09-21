@@ -81,5 +81,6 @@ def test_repro_survives_cell_timeout(monkeypatch):
     monkeypatch.setattr(br.subprocess, "Popen", FakePopen)
     monkeypatch.setattr("os.killpg", lambda pgid, sig: killed.update(pgid=pgid, sig=sig))
     assert br._repro("cpu", "ramp", 1) is None                # swallowed, not raised
+    assert seen["reaped"]                                      # final communicate() reaped the child
     assert seen["kw"]["start_new_session"] is True            # what makes pid == pgid
     assert (killed["pgid"], killed["sig"]) == (4242, signal.SIGKILL)   # popped pid is the pgid

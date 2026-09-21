@@ -54,6 +54,12 @@ def test_aggregate_rows_and_roles(tmp_path):
     assert {"arm", "pattern", "seed", "role", "either_viol", "replica_seconds",
             "overshoot_int", "thrash_events", "n_requests"} <= set(df.columns)
 
+def test_aggregate_skips_aborted_cell_dir_without_metrics(tmp_path):
+    _mk_run(tmp_path)                                   # one complete run
+    (tmp_path / "cpu_ramp_seed1").mkdir()               # aborted overnight cell: no metrics.json
+    df = aggregate(str(tmp_path))
+    assert len(df) == 1 and df.iloc[0].arm == "queue"   # no exception, exactly 1 row
+
 def test_cell_variance_flags_high_cv(tmp_path):
     _mk_run(tmp_path, arm="ttft", pattern="ramp", seed="1")                       # 0.25
     _mk_run(tmp_path, arm="ttft", pattern="ramp", seed="2",
@@ -65,7 +71,8 @@ def test_cell_variance_flags_high_cv(tmp_path):
     v = cell_variance(aggregate(str(tmp_path)))
     ttft = v[(v.arm == "ttft")].iloc[0]
     cpu = v[(v.arm == "cpu")].iloc[0]
-    assert bool(ttft.topup_flag) is True                        # cv = 0.80 (ddof=1)
+    assert ttft.either_cv == pytest.approx(0.80, abs=0.01)      # 0.7993: sample std (ddof=1)
+    assert bool(ttft.topup_flag) is True
     assert bool(cpu.topup_flag) is False
     assert set(v.columns) >= {"arm", "pattern", "n_seeds", "either_mean", "either_cv",
                               "thrash_cv", "topup_flag"}

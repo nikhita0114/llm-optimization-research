@@ -28,8 +28,11 @@ def cell_dir(arm, pattern, seed):
     return f"{RESULTS_DIR}/{arm}_{pattern}_seed{seed}"
 
 def cluster_healthy():
-    r = subprocess.run(["kubectl", "get", "nodes", "--no-headers"],
-                       capture_output=True, text=True, timeout=30)
+    try:
+        r = subprocess.run(["kubectl", "get", "nodes", "--no-headers"],
+                           capture_output=True, text=True, timeout=30)
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False    # hung kubectl / kubectl not installed => unhealthy => ABORT (exit 3)
     return r.returncode == 0 and " Ready" in r.stdout
 
 def _repro(arm, pattern, seed):

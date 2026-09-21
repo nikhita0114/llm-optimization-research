@@ -323,7 +323,7 @@ git commit -m "feat(agg): run QA gate + summary/variance aggregation"
   - `parse_plan(path: str) -> list[tuple[str, str, int]]` — (arm, pattern, seed) rows from TSV (`#` comments / blank lines ignored).
   - `cell_dir(arm, pattern, seed) -> str` — `results/<arm>_<pattern>_seed<seed>`.
   - `cluster_healthy() -> bool` — `kubectl get nodes` returns a Ready node.
-  - `run_plan(plan_path: str, dry_run: bool = False) -> int` — per cell: skip if `check_run` ok; else (dry-run: report) invoke `bash experiments/repro.sh ARM PATTERN SEED`, then `check_run`; one immediate retry on failure; two failures ⇒ abort the night (exit 2). Writes `results/batch_log/<plan-stem>_<UTC timestamp>.log` lines: `SKIP|RUN|PASS|RETRY|FAIL|ABORT cell reason`. Also aborts (exit 3) before any cell if `cluster_healthy()` is False.
+  - `run_plan(plan_path: str, dry_run: bool = False) -> int` — per cell: skip if `check_run` ok; else (dry-run: report) invoke `bash experiments/repro.sh ARM PATTERN SEED`, then `check_run`; one immediate retry on failure; two failures ⇒ abort the night (exit 2). Writes `results/batch_log/<plan-stem>_<UTC timestamp>.log` lines: `SKIP|TODO|PASS|RETRY|FAIL|ABORT cell reason`. Also aborts (exit 3) before any cell if `cluster_healthy()` is False.
   - CLI: `python -m src.batch_runner experiments/batches/night1.tsv [--dry-run]`
 
 - [ ] **Step 1: Write the failing tests**

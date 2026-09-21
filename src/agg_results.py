@@ -45,7 +45,13 @@ def aggregate(results_dir="results"):
         arm, pattern = parts[0].split("_", 1)
         if arm not in ARMS or pattern not in PATTERNS:
             continue
-        m = json.loads((d / "metrics.json").read_text())
+        mpath = d / "metrics.json"
+        if not mpath.exists():
+            continue   # aborted overnight cell: dir exists, metrics.json never written
+        try:
+            m = json.loads(mpath.read_text())
+        except json.JSONDecodeError:
+            continue   # truncated write from a killed cell
         so = m["scaleout"]
         rows.append({
             "arm": arm, "pattern": pattern, "seed": int(parts[1]),
